@@ -81,6 +81,7 @@ int scoutfs_server_start(struct super_block *sb, u64 term);
 void scoutfs_server_abort(struct super_block *sb);
 void scoutfs_server_stop(struct super_block *sb);
 
+void scoutfs_server_net_shutdown(struct super_block *sb);
 int scoutfs_server_setup(struct super_block *sb);
 void scoutfs_server_destroy(struct super_block *sb);
 

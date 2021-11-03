@@ -314,6 +314,9 @@ static void scoutfs_umount_begin(struct super_block *sb)
 
 	scoutfs_warn(sb, "forcing unmount, can return errors and lose unsynced data");
 	sbi->forced_unmount = true;
+
+	scoutfs_client_net_shutdown(sb);
+	scoutfs_server_net_shutdown(sb);
 }
 
 static const struct super_operations scoutfs_super_ops = {

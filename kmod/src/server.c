@@ -4108,3 +4108,11 @@ void scoutfs_server_destroy(struct super_block *sb)
 		sbi->server_info = NULL;
 	}
 }
+
+void scoutfs_server_net_shutdown(struct super_block *sb)
+{
+	struct server_info *server = SCOUTFS_SB(sb)->server_info;
+
+	if (server && server->conn)
+		scoutfs_net_shutdown(sb, server->conn);
+}
