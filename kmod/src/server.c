@@ -3834,6 +3834,7 @@ static void scoutfs_server_worker(struct work_struct *work)
 	struct scoutfs_net_connection *conn = NULL;
 	DECLARE_WAIT_QUEUE_HEAD(waitq);
 	struct sockaddr_in sin;
+	bool alloc_init = false;
 	u64 max_seq;
 	int ret;
 
@@ -3841,6 +3842,8 @@ static void scoutfs_server_worker(struct work_struct *work)
 
 	scoutfs_quorum_slot_sin(super, opts->quorum_slot_nr, &sin);
 	scoutfs_info(sb, "server starting at "SIN_FMT, SIN_ARG(&sin));
+
+	scoutfs_block_writer_init(sb, &server->wri);
 
 	/* first make sure no other servers are still running */
 	ret = scoutfs_quorum_fence_leaders(sb, server->term);
@@ -3881,7 +3884,6 @@ static void scoutfs_server_worker(struct work_struct *work)
 	atomic64_set(&server->seq_atomic, le64_to_cpu(super->seq));
 	set_roots(server, &super->fs_root, &super->logs_root,
 		  &super->srch_root);
-	scoutfs_block_writer_init(sb, &server->wri);
 
 	/* prepare server alloc for this transaction, larger first */
 	if (le64_to_cpu(super->server_meta_avail[0].total_nr) <
@@ -3892,6 +3894,7 @@ static void scoutfs_server_worker(struct work_struct *work)
 	scoutfs_alloc_init(&server->alloc,
 			   &super->server_meta_avail[server->other_ind ^ 1],
 			   &super->server_meta_freed[server->other_ind ^ 1]);
+	alloc_init=true;
 	server->other_avail = &super->server_meta_avail[server->other_ind];
 	server->other_freed = &super->server_meta_freed[server->other_ind];
 
@@ -3954,6 +3957,12 @@ shutdown:
 	flush_work(&server->commit_work);
 
 	scoutfs_fence_stop(sb);
+
+	if (alloc_init)
+		scoutfs_alloc_prepare_commit(sb, &server->alloc, &server->wri);
+
+	scoutfs_block_writer_forget_all(sb, &server->wri);
+
 	scoutfs_lock_server_destroy(sb);
 	scoutfs_omap_server_shutdown(sb);
 
