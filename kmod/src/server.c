@@ -2498,7 +2498,8 @@ static int server_commit_log_merge(struct super_block *sb,
 	struct scoutfs_log_merge_range rng;
 	struct scoutfs_key key;
 	char *err_str = NULL;
-	int ret;
+	int ret = 0;
+	int err = 0;
 
 	scoutfs_key_set_zeros(&rng.end);
 
@@ -2516,10 +2517,10 @@ static int server_commit_log_merge(struct super_block *sb,
 	mutex_lock(&server->logs_mutex);
 
 	/* find the status of the current log merge */
-	ret = next_log_merge_item(sb, &super->log_merge,
+	err = next_log_merge_item(sb, &super->log_merge,
 				  SCOUTFS_LOG_MERGE_STATUS_ZONE, 0, 0,
 				  &stat, sizeof(stat));
-	if (ret < 0) {
+	if (err < 0) {
 		err_str = "getting merge status item";
 		goto out;
 	}
@@ -2540,9 +2541,9 @@ static int server_commit_log_merge(struct super_block *sb,
 	/* delete the original request item */
 	init_log_merge_key(&key, SCOUTFS_LOG_MERGE_REQUEST_ZONE, rid,
 			   le64_to_cpu(orig_req.seq));
-	ret = scoutfs_btree_delete(sb, &server->alloc, &server->wri,
+	err = scoutfs_btree_delete(sb, &server->alloc, &server->wri,
 				   &super->log_merge, &key);
-	if (ret < 0) {
+	if (err < 0) {
 		err_str = "deleting orig request";
 		goto out;
 	}
@@ -2605,8 +2606,18 @@ out:
 	if (ret < 0)
 		scoutfs_err(sb, "error %d committing log merge: %s", ret, err_str);
 
-	ret = scoutfs_server_apply_commit(sb, ret);
 	BUG_ON(ret < 0); /* inconsistent */
+
+	if (err < 0) {
+		scoutfs_err(sb, "error %d init work for commiting log merge: %s", err, err_str);
+		ret = err;
+	}
+
+	if (ret == 0 && err == 0) {
+		err = scoutfs_server_apply_commit(sb, ret);
+		if (err < 0)
+			ret = err;
+	}
 
 	return scoutfs_net_response(sb, conn, cmd, id, ret, NULL, 0);
 }
