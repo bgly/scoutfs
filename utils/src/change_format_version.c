@@ -119,6 +119,14 @@ static int do_change_fmt_vers(struct change_fmt_vers_args *args)
 		goto out;
 	}
 
+	if (le64_to_cpu(meta_super->fmt_vers) > args->fmt_vers ||
+		le64_to_cpu(data_super->fmt_vers) > args->fmt_vers) {
+			ret = -EPERM;
+			printf("Downgrade of Format Version to: %llu is not allowed\n", args->fmt_vers);
+			goto out;
+		}
+
+
 	if (le64_to_cpu(meta_super->fmt_vers) != args->fmt_vers) {
 		meta_super->fmt_vers = cpu_to_le64(args->fmt_vers);
 
