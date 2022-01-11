@@ -856,7 +856,13 @@ struct scoutfs_inode {
 	struct scoutfs_timespec ctime;
 	struct scoutfs_timespec mtime;
 	struct scoutfs_timespec crtime;
+	__le64 worm_bits;
+	struct scoutfs_timespec worm_expiration;
 };
+
+#define SCOUTFS_WORM_V1_BIT (1 << 0)
+#define SCOUTFS_INODE_FMT_V2_BYTES sizeof(struct scoutfs_inode)
+#define SCOUTFS_INODE_FMT_V1_BYTES (SCOUTFS_INODE_FMT_V2_BYTES - offsetof(struct scoutfs_inode, worm_bits))
 
 #define SCOUTFS_INO_FLAG_TRUNCATE 0x1
 
@@ -908,6 +914,7 @@ enum scoutfs_dentry_type {
 #define SCOUTFS_XATTR_MAX_VAL_LEN	65535
 #define SCOUTFS_XATTR_MAX_PART_SIZE	SCOUTFS_MAX_VAL_SIZE
 #define SCOUTFS_XATTR_MAX_TOTL_U64	23 /* octal U64_MAX */
+#define SCOUTFS_XATTR_MAX_TOTL_U32	12 /* octal U32_MAX */
 
 #define SCOUTFS_XATTR_NR_PARTS(name_len, val_len)			\
 	DIV_ROUND_UP(sizeof(struct scoutfs_xattr) + name_len + val_len, \

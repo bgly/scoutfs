@@ -14,6 +14,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <argp.h>
+#include <stdbool.h>
 
 #include "sparse.h"
 #include "parse.h"
@@ -48,27 +49,32 @@ static void print_inode(struct scoutfs_key *key, void *val, int val_len)
 	struct scoutfs_inode *inode = val;
 
 	printf("    inode: ino %llu size %llu version %llu nlink %u\n"
-	       "      uid %u gid %u mode 0%o rdev 0x%x flags 0x%x\n"
-	       "      next_readdir_pos %llu meta_seq %llu data_seq %llu data_version %llu\n"
-	       "      atime %llu.%08u ctime %llu.%08u\n"
-	       "      mtime %llu.%08u\n",
-	       le64_to_cpu(key->ski_ino),
-	       le64_to_cpu(inode->size),
-	       le64_to_cpu(inode->version),
-	       le32_to_cpu(inode->nlink), le32_to_cpu(inode->uid),
-	       le32_to_cpu(inode->gid), le32_to_cpu(inode->mode),
-	       le32_to_cpu(inode->rdev),
-	       le32_to_cpu(inode->flags),
-	       le64_to_cpu(inode->next_readdir_pos),
-	       le64_to_cpu(inode->meta_seq),
-	       le64_to_cpu(inode->data_seq),
-	       le64_to_cpu(inode->data_version),
-	       le64_to_cpu(inode->atime.sec),
-	       le32_to_cpu(inode->atime.nsec),
-	       le64_to_cpu(inode->ctime.sec),
-	       le32_to_cpu(inode->ctime.nsec),
-	       le64_to_cpu(inode->mtime.sec),
-	       le32_to_cpu(inode->mtime.nsec));
+		"      uid %u gid %u mode 0%o rdev 0x%x flags 0x%x\n"
+		"      next_readdir_pos %llu meta_seq %llu data_seq %llu data_version %llu\n"
+		"      atime %llu.%08u ctime %llu.%08u\n"
+		"      mtime %llu.%08u\n"
+		"      worm_bits %llu\n"
+		"      worm_expiration %llu.%08u\n",
+		le64_to_cpu(key->ski_ino),
+		le64_to_cpu(inode->size),
+		le64_to_cpu(inode->version),
+		le32_to_cpu(inode->nlink), le32_to_cpu(inode->uid),
+		le32_to_cpu(inode->gid), le32_to_cpu(inode->mode),
+		le32_to_cpu(inode->rdev),
+		le32_to_cpu(inode->flags),
+		le64_to_cpu(inode->next_readdir_pos),
+		le64_to_cpu(inode->meta_seq),
+		le64_to_cpu(inode->data_seq),
+		le64_to_cpu(inode->data_version),
+		le64_to_cpu(inode->atime.sec),
+		le32_to_cpu(inode->atime.nsec),
+		le64_to_cpu(inode->ctime.sec),
+		le32_to_cpu(inode->ctime.nsec),
+		le64_to_cpu(inode->mtime.sec),
+		le32_to_cpu(inode->mtime.nsec),
+		inode->worm_bits ? le64_to_cpu(inode->worm_bits):0,
+		inode->worm_expiration.sec ? le64_to_cpu(inode->worm_expiration.sec):0,
+		inode->worm_expiration.nsec ? le32_to_cpu(inode->worm_expiration.nsec):0);
 }
 
 static void print_orphan(struct scoutfs_key *key, void *val, int val_len)

@@ -659,6 +659,11 @@ static long scoutfs_ioc_setattr_more(struct file *file, unsigned long arg)
 	if (ret)
 		goto unlock;
 
+	if (scoutfs_inode_worm_denied(inode)) {
+		ret = -EACCES;
+		goto unlock;
+	}
+
 	/* can only change size/dv on untouched regular files */
 	if ((sm.i_size != 0 || sm.data_version != 0) &&
 	    ((!S_ISREG(inode->i_mode) ||
@@ -823,7 +828,7 @@ static long scoutfs_ioc_search_xattrs(struct file *file, unsigned long arg)
 		goto out;
 	}
 
-	if (scoutfs_xattr_parse_tags(name, sx.name_bytes, &tgs) < 0 ||
+	if (scoutfs_xattr_parse_tags(name, sx.name_bytes, &tgs, sb) < 0 ||
 	    !tgs.srch) {
 		ret = -EINVAL;
 		goto out;
@@ -964,6 +969,10 @@ static long scoutfs_ioc_move_blocks(struct file *file, unsigned long arg)
 	if (mb.len == 0)
 		return 0;
 
+	if (scoutfs_inode_worm_denied(to)) {
+		return -EACCES;
+	}
+
 	if (mb.from_off + mb.len < mb.from_off ||
 	    mb.to_off + mb.len < mb.to_off)
 		return -EOVERFLOW;
@@ -975,6 +984,11 @@ static long scoutfs_ioc_move_blocks(struct file *file, unsigned long arg)
 
 	if (from == to) {
 		ret = -EINVAL;
+		goto out;
+	}
+
+	if (scoutfs_inode_worm_denied(from)) {
+		ret = -EACCES;
 		goto out;
 	}
 

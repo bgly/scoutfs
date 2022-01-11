@@ -529,6 +529,12 @@ static int scoutfs_get_block(struct inode *inode, sector_t iblock,
 		goto out;
 	}
 
+	if (create && !si->staging &&
+		scoutfs_inode_worm_denied(inode)) {
+			ret = -EACCES;
+			goto out;
+		}
+
 	/* convert unwritten to written, could be staging */
 	if (create && ext.map && (ext.flags & SEF_UNWRITTEN)) {
 		un.start = iblock;
@@ -592,6 +598,9 @@ static int scoutfs_get_block_write(struct inode *inode, sector_t iblock,
 	struct scoutfs_inode_info *si = SCOUTFS_I(inode);
 	int ret;
 
+	if (scoutfs_inode_worm_denied(inode)) {
+		return -EACCES;
+	}
 	down_write(&si->extent_sem);
 	ret = scoutfs_get_block(inode, iblock, bh, create);
 	up_write(&si->extent_sem);
