@@ -1,0 +1,14 @@
+== test creation
+== test deletion of xattr 1 sec after setting
+setfattr: /mnt/test.0/test/worm-xattr-unit/file-1: Permission denied
+== test deletion before expiration
+rm: cannot remove ‘/mnt/test.0/test/worm-xattr-unit/file-1’: Permission denied
+== Try to move the file prior to expiration
+mv: cannot move ‘/mnt/test.0/test/worm-xattr-unit/file-1’ to ‘/mnt/test.0/test/worm-xattr-unit/file-2’: Permission denied
+== Try to write to file before expiration
+date: write error: Permission denied
+== wait til expiration
+== Try to write to file after expiration
+== Try to move the file after expiration
+== test deletion after expiration
+== removing files after expiration
