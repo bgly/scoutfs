@@ -16,7 +16,10 @@ setup(
     packages=find_packages(),
     install_requires=[
         'click',
-        'bson'
+        'bson',
+        'elasticsearch==7.17.0',
+        'confuse',
+        'requests'
     ],
     classifiers=[
         "Programming Language :: Python :: 3",

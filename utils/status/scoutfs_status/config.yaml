@@ -1,0 +1,52 @@
+# scoutfs default/sample config file
+#
+# default search paths for config
+# macOS: ~/.config/scoutfs
+# Other Unix: ~/.config/scoutfs and /etc/scoutfs
+#
+appName: scoutfs
+
+scoutfs:
+    # block size used for du size
+    blocksize: 512
+
+databases:
+    elasticsearch:
+        # set host to your Elasticsearch hostname or IP
+        # if you have multiple ES hosts/nodes in your cluster, you can set multiple hosts using a list ['eshost1', 'eshost2']
+        # if using AWS ES, set to your AWS ES endpoint name without http:// or https://
+        # override with env var ES_HOST
+        host: localhost
+        # set port to your ES port, default is 9200 for local and 443 or 80 for AWS ES
+        # override with env var ES_PORT
+        port: 9200
+        # set user and password if using ES http-auth or leave blank/empty if no user/pass
+        # override with env vars ES_USER and ES_PASS
+        #user: elastic
+        #password: changeme
+        user: 
+        password: 
+        # set https to True if using HTTP TLS/SSL or False if using http
+        # for AWS ES, you will most likely want to set this to True
+        # override with env var ES_HTTPS
+        https: False
+        # compress http data
+        # for AWS ES, you will most likely want to set this to True
+        httpcompress: False
+        # timeout for connection to ES (default is 10)
+        timeout: 30
+        # number of connections kept open to ES when crawling (default is 10)
+        maxsize: 20
+        # max retries for ES operations (default is 0)
+        maxretries: 10
+        # wait for at least yellow status before bulk uploading (default is False), set to True if you want to wait
+        wait: False
+        # chunk size for ES bulk operations (default is 500)
+        chunksize: 1000
+        # the below settings are to optimize ES for crawling
+        # index refresh interval (default is 1s), set to -1 to disable refresh during crawl (fastest performance but no index searches), after crawl is set back to 1s
+        indexrefresh: 30s
+        # transaction log flush threshold size (default 512mb)
+        translogsize: 1gb
+        # transaction log sync interval time (default 5s)
+        translogsyncint: 30s

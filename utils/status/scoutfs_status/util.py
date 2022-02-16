@@ -2,8 +2,11 @@
 # Copyright (c) 2021 Versity Software, Inc. All rights reserved.
 #
 
+import os
+import re
 import click
 import core
+import math
 
 
 class Context():
@@ -46,3 +49,40 @@ def display_string(value):
     elif value is None:
         return "N/A"
     return str(value)
+
+
+def get_time(seconds):
+    m, s = divmod(seconds, 60)
+    h, m = divmod(m, 60)
+    d, h = divmod(h, 24)
+    return "%dd:%dh:%02dm:%02ds" % (d, h, m, s)
+
+
+def set_times(path, atime, mtime):
+    try:
+        os.utime(path, (atime, mtime))
+    except OSError as e:
+        return False, e
+    return True, None
+
+
+def convert_size(size_bytes):
+    if size_bytes == 0:
+        return '0 B'
+    size_name = ('B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB')
+    i = int(math.floor(math.log(size_bytes, 1024)))
+    p = math.pow(1024, i)
+    s = round(size_bytes / p, 2)
+    return '{0} {1}'.format(s, size_name[i])
+
+
+def handle_unicode(f, ignore_errors=False):
+    if ignore_errors:
+        err = 'replace'
+    else:
+        err = 'strict'
+    try:
+        return f.encode('utf-8', errors=err).decode('utf-8')
+    except UnicodeEncodeError:
+        raise UnicodeError
+        
